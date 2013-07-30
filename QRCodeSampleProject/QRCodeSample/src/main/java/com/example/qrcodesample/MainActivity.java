@@ -27,7 +27,7 @@ import com.google.zxing.Result;
 
 import java.util.List;
 
-public class MainActivity extends Activity implements OnClickListener, AutoFocusCallback {
+public class MainActivity extends Activity implements SurfaceHolder.Callback, OnClickListener, AutoFocusCallback {
 
 	private Context mContext;
 	private SurfaceView mSurfaceView;
@@ -52,47 +52,49 @@ public class MainActivity extends Activity implements OnClickListener, AutoFocus
 	protected void onResume() {
 		super.onResume();
 		SurfaceHolder holder = mSurfaceView.getHolder();
-		holder.addCallback(callback);
+		holder.addCallback(this);
 	}
 
-	private SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
-		@Override
-		public void surfaceCreated(SurfaceHolder holder) {
-			// Camera Open
-			mCamera = Camera.open();
-			mCamera.setDisplayOrientation(90);
-			try {
-				mCamera.setPreviewDisplay(holder);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		// Camera Open
+		mCamera = Camera.open();
+		mCamera.setDisplayOrientation(90);
+		try {
+			mCamera.setPreviewDisplay(holder);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		@Override
-		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+	}
 
-			mCamera.setPreviewCallback(_previewCallback);
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
-			Camera.Parameters parameters = mCamera.getParameters();
-			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-				parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-			} else {
-				parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-			}
+		mCamera.setPreviewCallback(_previewCallback);
 
-			List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-			Camera.Size previewSize = previewSizes.get(0);
-			parameters.setPreviewSize(previewSize.width, previewSize.height);
-
-			mCamera.setParameters(parameters);
-			mCamera.startPreview();
+		Camera.Parameters parameters = mCamera.getParameters();
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+		} else {
+			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 		}
-		@Override
-		public void surfaceDestroyed(SurfaceHolder holder) {
-			mCamera.setPreviewCallback(null);
-			mCamera.release();
-			mCamera = null;
-		}
-	};
+
+		List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+		Camera.Size previewSize = previewSizes.get(0);
+		parameters.setPreviewSize(previewSize.width, previewSize.height);
+
+		mCamera.setParameters(parameters);
+		mCamera.startPreview();
+
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		mCamera.setPreviewCallback(null);
+		mCamera.release();
+		mCamera = null;
+
+	}
 
 	@Override
 	public void onClick(View v) {
